@@ -1,0 +1,13 @@
+.control-panel {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.control-panel .btn {
+    min-width: 40px;
+    margin-right: 0.25rem;
+}
+
+.control-panel .btn:last-of-type {
+    margin-right: 1rem;
+}

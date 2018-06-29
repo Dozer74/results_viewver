@@ -5,7 +5,13 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <title>Test</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/solid.css"
+          integrity="sha384-TbilV5Lbhlwdyc4RuIV/JhD8NR+BfMrvz4BL5QFa2we1hQu6wvREr3v6XSRfCTRp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/fontawesome.css"
+          integrity="sha384-ozJwkrqb90Oa3ZNb+yKFW2lToAWYdTiF1vt8JiH5ptTGHTGcN7qdoR1F95e0kYyG" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/styles.css">
+
+    <title>Results Viewer: {{ images_dir_name }} folder</title>
 </head>
 <body>
 
@@ -34,9 +40,29 @@
 
         <div class="col">
             <div class="row">
-                <div class="col">
-                    <a href="{{ url_for('prev') }}" class="btn btn-primary {{ first and 'disabled' or '' }}"> < </a>
-                    <a href="{{ url_for('next') }}" class="btn btn-primary {{ last and 'disabled' or '' }}"> > </a>
+                <div class="col control-panel">
+
+                    {% set first = current_image_index==0 %}
+                    {% set last =  current_image_index==images_count-1 %}
+
+                    <a href="{{ url_for('first') }}"
+                       class="btn btn-primary {{ first and 'disabled' or '' }}">
+                        <i class="fa fa-angle-double-left"></i>
+                    </a>
+
+                    <a href="{{ url_for('prev') }}"
+                       class="btn btn-primary {{ first and 'disabled' or '' }}">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    <a href="{{ url_for('next') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+
+                    <a href="{{ url_for('last') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
+                        <i class="fa fa-angle-double-right"></i>
+                    </a>
+
+                    <span>{{ image_name }} ({{ current_image_number }}/{{ images_count }})</span>
 
                 </div>
             </div>

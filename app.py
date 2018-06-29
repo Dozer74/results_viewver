@@ -20,10 +20,20 @@ def index():
         'boxes2': read_annots_file(boxes2_path)
     }
 
-    first = app.config['HEAD'] == 0
-    last = app.config['HEAD'] == len(app.config['BOXES_INFO']) - 1
+    params = {
+        'images_count': len(app.config['BOXES_INFO']),
+        'current_image_index': app.config['HEAD'],
+        'images_dir_name': path.basename(app.config['IMAGES_DIR']),
+        'image_name': current_info().img_name
+    }
 
-    return render_template('index.html', boxes=boxes, first=first, last=last)
+    return render_template('index.html', **params)
+
+
+@app.route('/first')
+def first():
+    app.config['HEAD'] = 0
+    return redirect(url_for('index'))
 
 
 @app.route('/next')
@@ -35,6 +45,12 @@ def next():
 @app.route('/prev')
 def prev():
     app.config['HEAD'] -= 1
+    return redirect(url_for('index'))
+
+
+@app.route('/last')
+def last():
+    app.config['HEAD'] = len(app.config['BOXES_INFO']) - 1
     return redirect(url_for('index'))
 
 
