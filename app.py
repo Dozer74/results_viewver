@@ -1,4 +1,5 @@
 import sys
+from builtins import print
 from os import path
 import os
 from flask import Flask, render_template, send_from_directory, redirect, url_for
@@ -6,25 +7,25 @@ import argparse
 import pandas as pd
 from collections import namedtuple
 
-BoxesInfo = namedtuple('BoxesInfo', ('boxes1', 'boxes2', 'img_name'))
+BoxesInfo = namedtuple('BoxesInfo', ('img_name', 'boxes'))
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    boxes1_path = current_info().boxes1
-    boxes2_path = current_info().boxes2
-    boxes = {
-        'boxes1': read_annots_file(boxes1_path),
-        'boxes2': read_annots_file(boxes2_path)
-    }
+    boxes = [read_annots_file(boxes_path) for boxes_path in current_info().boxes]
+    colors = ['#ff8000', '#0000ff', '#00ff00', '#ff0000']
+    for i, box in enumerate(boxes):
+        box['color'] = colors[i % len(colors)]
 
     params = {
         'images_count': len(app.config['BOXES_INFO']),
         'current_image_index': app.config['HEAD'],
+        'current_image_number': app.config['HEAD']+1,
         'images_dir_name': path.basename(app.config['IMAGES_DIR']),
-        'image_name': current_info().img_name
+        'image_name': current_info().img_name,
+        'boxes': boxes
     }
 
     return render_template('index.html', **params)
@@ -74,15 +75,16 @@ def add_header(r):
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('images_dir')
-    parser.add_argument('boxes1')
-    parser.add_argument('boxes2')
+    parser = argparse.ArgumentParser('Simple viewer for ResNet detections results')
+    parser.add_argument('images_dir', help='Path to the images folder.')
+    parser.add_argument('boxes', nargs='+', help='Paths to folders with bouncing boxing information. '
+                                                 'File names must match the names of the images '
+                                                 'and extension must be .txt.')
     return parser.parse_args(args)
 
 
 def check_args(args):
-    for p in [args.images_dir, args.boxes1, args.boxes2]:
+    for p in [args.images_dir, *args.boxes]:
         if not path.exists(p) or not path.isdir(p):
             print(f'{p} - folder does not exist')
             exit(-1)
@@ -97,20 +99,22 @@ def read_input_info(args):
             continue
 
         img_name_without_ext = path.splitext(img_name)[0]
-        boxes1_path = path.join(args.boxes1, img_name_without_ext + '.txt')
-        boxes2_path = path.join(args.boxes2, img_name_without_ext + '.txt')
+        boxes = [path.join(box_path, img_name_without_ext + '.txt') for box_path in args.boxes]
+
         boxes_info.append(BoxesInfo(
-            boxes1=boxes1_path,
-            boxes2=boxes2_path,
-            img_name=img_name
+            img_name=img_name,
+            boxes=boxes
         ))
     return boxes_info
 
 
 def read_annots_file(filepath):
-    if not path.exists(filepath):
-        return []
-    return pd.read_csv(filepath, header=None).values.tolist()
+    boxes = [] if not path.exists(filepath) else pd.read_csv(filepath, header=None).values.tolist()
+    folder_name = path.basename(path.dirname(filepath))
+    return {
+        'folder_name': folder_name,
+        'boxes': boxes
+    }
 
 
 def current_info():

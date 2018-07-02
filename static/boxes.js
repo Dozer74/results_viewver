@@ -19,27 +19,39 @@ function initCanvas(current_image_url, boxes) {
 
             ctx.textBaseline = 'top';
             ctx.fillStyle = storkeColor;
-            ctx.fillRect(box[0]-2, box[1] - 19, width+8, 19);
+            ctx.fillRect(box[0] - 2, box[1] - 19, width + 8, 19);
 
             ctx.fillStyle = 'white';
-            ctx.fillText(text, box[0]+2, box[1]-16);
+            ctx.fillText(text, box[0] + 2, box[1] - 16);
 
             ctx.restore();
         });
     }
 
-    function update_image() {
-        let states = [
-            $('#cb-boxes1').prop('checked'),
-            $('#cb-boxes2').prop('checked')
-        ];
+    function getCheckboxStates() {
+        const cbBoxes = $('.cb-boxes');
+        return cbBoxes.map((i, el) => $(el).prop('checked')).get();
+    }
 
-        ctx.drawImage(image, 0, 0);
-        if (states[0]) {
-            drawBoxes(boxes.boxes1, 'red');
+    function loadStates() {
+        let states = sessionStorage.getItem('states');
+        if (states) {
+            states = JSON.parse(states);
+            let checkBoxes = $('.cb-boxes');
+            if (states.length === checkBoxes.length) {
+                checkBoxes.each((idx, el) => $(el).prop('checked', states[idx]));
+            }
         }
-        if (states[1]) {
-            drawBoxes(boxes.boxes2, 'blue');
+    }
+
+    function update_image() {
+        ctx.drawImage(image, 0, 0);
+
+        let states = getCheckboxStates();
+        for (let i = 0; i < states.length; i++) {
+            if (states[i]) {
+                drawBoxes(boxes[i].boxes, boxes[i].color);
+            }
         }
     }
 
@@ -51,11 +63,16 @@ function initCanvas(current_image_url, boxes) {
         canvas.width = image.width;
         canvas.height = image.height;
 
+        loadStates();
         update_image();
     };
     image.src = current_image_url;
 
-    $('#cb-boxes1, #cb-boxes2').click((e) => {
+
+    $('.cb-boxes').click((e) => {
         update_image();
+
+        const states = getCheckboxStates();
+        sessionStorage.setItem('states', JSON.stringify(states));
     });
 }

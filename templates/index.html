@@ -17,25 +17,17 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-auto">
-            <form>
-                <fieldset class="form-group">
-                    <legend>Show boxes</legend>
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input id="cb-boxes1" type="checkbox" class="form-check-input">
-                            Boxes 1
-                        </label>
-                    </div>
-
-                    <div class="form-check">
-                        <label class="form-check-label">
-                            <input id="cb-boxes2" type="checkbox" class="form-check-input">
-                            Boxes 2
-                        </label>
-                    </div>
-                </fieldset>
-            </form>
+        <div id="sidebar" class="col-2">
+            <h4 class="list-group-header">Select boxes</h4>
+            {% for box in boxes %}
+                <div class="form-check list-group-item">
+                    <label class="form-check-label">
+                        <input type="checkbox" class="form-check-input cb-boxes">
+                        {{ box.folder_name }}
+                        <span class="color-box" style="background-color: {{ box.color }}"></span>
+                    </label>
+                </div>
+            {% endfor %}
         </div>
 
         <div class="col">
@@ -83,7 +75,7 @@
 
 <script src="/static/boxes.js"></script>
 <script>
-    let boxes = {{ boxes|tojson|safe }};
+    let boxes = JSON.parse('{{ boxes|tojson|safe }}');
     initCanvas('{{ url_for("get_current_image") }}', boxes);
 </script>
 </body>

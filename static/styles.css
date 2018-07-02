@@ -11,3 +11,33 @@
 .control-panel .btn:last-of-type {
     margin-right: 1rem;
 }
+
+.color-box {
+    display: inline-block;
+    line-height: 1;
+    vertical-align: middle;
+    border-radius: 0.5rem;
+    width: 12px;
+    height: 12px;
+}
+
+#sidebar {
+    height: 100vh;
+    background-color: #333;
+}
+
+#sidebar .list-group-item {
+    border-radius: 0;
+    background-color: #333;
+    color: #ccc;
+    border-left: 0;
+    border-right: 0;
+    border-color: #2c2c2c;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+.list-group-header {
+    color: #ddd;
+    margin-top: 1rem;
+}
