@@ -6,6 +6,7 @@ from flask import Flask, render_template, send_from_directory, redirect, url_for
 import argparse
 import pandas as pd
 from collections import namedtuple
+from utils import generate_palette
 
 BoxesInfo = namedtuple('BoxesInfo', ('img_name', 'boxes'))
 
@@ -15,7 +16,7 @@ app = Flask(__name__)
 @app.route('/')
 def index():
     boxes = [read_annots_file(boxes_path) for boxes_path in current_info().boxes]
-    colors = ['#ff8000', '#0000ff', '#00ff00', '#ff0000']
+    colors = generate_palette(len(boxes))
     for i, box in enumerate(boxes):
         box['color'] = colors[i % len(colors)]
 
@@ -25,9 +26,18 @@ def index():
         'current_image_number': app.config['HEAD'] + 1,
         'images_dir_name': path.basename(app.config['IMAGES_DIR']),
         'image_name': current_info().img_name,
-        'boxes': boxes,
-        'labels_mapping': app.config['CLASSES']
+        'boxes': boxes
     }
+
+    if app.config['CLASSES']:
+        params.update({'labels_mapping': app.config['CLASSES']})
+
+    gt = app.config['GROUND_TRUTH']
+    if gt is not None:
+        gt = gt[gt.filename == current_info().img_name]
+        params.update({
+            'ground_truth': gt.values[:, 1:].tolist()
+        })
 
     return render_template('index.html', **params)
 
@@ -82,6 +92,7 @@ def parse_args(args):
                                                  'File names must match the names of the images '
                                                  'and extension must be .txt.')
     parser.add_argument('--classes', help='Path to file with label class to label name mapping.')
+    parser.add_argument('--ground-truth', help='Path to file with ground truth boxes.')
     return parser.parse_args(args)
 
 
@@ -93,6 +104,10 @@ def check_args(args):
 
     if args.classes and not path.exists(args.classes):
         print('Classes file does not exist')
+        exit(-1)
+
+    if args.ground_truth and not path.exists(args.ground_truth):
+        print('Ground-truth file does not exist')
         exit(-1)
 
 
@@ -115,7 +130,11 @@ def read_input_info(args):
 
 
 def read_annots_file(filepath):
-    boxes = [] if not path.exists(filepath) else pd.read_csv(filepath, header=None).values.tolist()
+    try:
+        boxes = pd.read_csv(filepath, header=None).values.tolist()
+    except:
+        boxes = []
+
     folder_name = path.basename(path.dirname(filepath))
     return {
         'folder_name': folder_name,
@@ -128,9 +147,15 @@ def current_info():
 
 
 def read_classes(classes_path):
-    import pandas as pd
     df_classes = pd.read_csv(classes_path, header=None)
     return df_classes[0].to_dict()
+
+
+def read_ground_truth(ground_truth_path):
+    df = pd.read_csv(ground_truth_path)
+    df.filename = df.filename.apply(lambda x: path.basename(x))
+    return df
+
 
 if __name__ == '__main__':
     args = parse_args(sys.argv[1:])
@@ -141,5 +166,6 @@ if __name__ == '__main__':
     app.config['HEAD'] = 0
 
     app.config['CLASSES'] = read_classes(args.classes) if args.classes else None
+    app.config['GROUND_TRUTH'] = read_ground_truth(args.ground_truth) if args.ground_truth else None
 
     app.run(debug=True)

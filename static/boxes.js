@@ -1,12 +1,13 @@
-function initCanvas(current_image_url, boxes, mapping = null) {
+function initCanvas(current_image_url, boxes, mapping = null, ground_truth = null) {
     const canvas = $('#canvas')[0];
     const ctx = canvas.getContext('2d');
     const slider = $("#slider");
 
-    function drawBoxes(boxes, storkeColor, mode) {
+    function drawBoxes(boxes, storkeColor, mode, lineWidth = 2, padding = 4, lineDash = []) {
         ctx.strokeStyle = storkeColor;
         ctx.fillStyle = storkeColor;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = lineWidth;
+        ctx.setLineDash(lineDash);
 
         boxes.forEach((box) => {
             ctx.beginPath();
@@ -19,6 +20,7 @@ function initCanvas(current_image_url, boxes, mapping = null) {
 
             ctx.save();
             ctx.font = "15px Arial";
+            const fontSize = Number.parseInt(ctx.font);
             let text = '';
             if (mode === 0) { // conf
                 text = box[5].toFixed(2).toString();
@@ -37,13 +39,17 @@ function initCanvas(current_image_url, boxes, mapping = null) {
 
             ctx.textBaseline = 'top';
             ctx.fillStyle = storkeColor;
-            ctx.fillRect(box[0] - 2, box[1] - 19, width + 8, 19);
+            ctx.fillRect(box[0] - lineWidth / 2, box[1] - fontSize - padding, width + 2 * padding, fontSize + padding);
 
             ctx.fillStyle = 'white';
-            ctx.fillText(text, box[0] + 2, box[1] - 16);
+            ctx.fillText(text, box[0] + padding / 2, box[1] - fontSize - padding / 2);
 
             ctx.restore();
         });
+    }
+
+    function drawGroundTruth(boxes) {
+        drawBoxes(boxes, 'darkgreen', 3, 2, 0, [10, 10]);
     }
 
     function getCheckboxStates() {
@@ -59,6 +65,12 @@ function initCanvas(current_image_url, boxes, mapping = null) {
             if (states.length === checkBoxes.length) {
                 checkBoxes.each((idx, el) => $(el).prop('checked', states[idx]));
             }
+        }
+
+        let gt_state = sessionStorage.getItem('gt_state');
+        if (gt_state) {
+            gt_state = JSON.parse(gt_state);
+            $('.cb-ground-truth').prop('checked', gt_state);
         }
 
         let threshold = sessionStorage.getItem('threshold');
@@ -81,6 +93,14 @@ function initCanvas(current_image_url, boxes, mapping = null) {
         let states = getCheckboxStates();
         let threshold = Number.parseFloat(slider.val());
         let mode = $('.rb-label:checked').data('number');
+
+        if (ground_truth) {
+            let gt_state = $('.cb-ground-truth').prop('checked');
+            if (gt_state) {
+                drawGroundTruth(ground_truth);
+            }
+        }
+
         for (let i = 0; i < states.length; i++) {
             if (states[i]) {
                 const selected_boxes = boxes[i].boxes.filter(box => box[5] >= threshold);
@@ -101,18 +121,6 @@ function initCanvas(current_image_url, boxes, mapping = null) {
     image.src = current_image_url;
 
 
-    $('.cb-boxes').click((e) => {
-        update_image();
-
-        const states = getCheckboxStates();
-        sessionStorage.setItem('states', JSON.stringify(states));
-    });
-
-    $('.rb-label').click((e) => {
-        update_image();
-        sessionStorage.setItem('labelsMode', JSON.stringify($(e.target).data('number')));
-    });
-
     $(document).ready($ => {
         slider.slider();
         loadStates();
@@ -125,6 +133,20 @@ function initCanvas(current_image_url, boxes, mapping = null) {
 
         slider.on('change', (e) => update(e.value.newValue));
         slider.on("slide", (e) => update(e.value));
+
+        $('.cb-boxes, .cb-ground-truth').change((e) => {
+            update_image();
+
+            const states = getCheckboxStates();
+            const gt_state = $('.cb-ground-truth').prop('checked');
+            sessionStorage.setItem('states', JSON.stringify(states));
+            sessionStorage.setItem('gt_state', JSON.stringify(gt_state));
+        });
+
+        $('.rb-label').click((e) => {
+            update_image();
+            sessionStorage.setItem('labelsMode', JSON.stringify($(e.target).data('number')));
+        });
 
     });
 
