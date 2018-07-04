@@ -9,6 +9,10 @@
           integrity="sha384-TbilV5Lbhlwdyc4RuIV/JhD8NR+BfMrvz4BL5QFa2we1hQu6wvREr3v6XSRfCTRp" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/fontawesome.css"
           integrity="sha384-ozJwkrqb90Oa3ZNb+yKFW2lToAWYdTiF1vt8JiH5ptTGHTGcN7qdoR1F95e0kYyG" crossorigin="anonymous">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.2/css/bootstrap-slider.min.css"
+          crossorigin="anonymous">
+
     <link rel="stylesheet" href="/static/styles.css">
 
     <title>Results Viewer: {{ images_dir_name }} folder</title>
@@ -18,16 +22,30 @@
 <div class="container-fluid">
     <div class="row">
         <div id="sidebar" class="col-2">
-            <h4 class="list-group-header">Select boxes</h4>
-            {% for box in boxes %}
-                <div class="form-check list-group-item">
-                    <label class="form-check-label">
-                        <input type="checkbox" class="form-check-input cb-boxes">
-                        {{ box.folder_name }}
-                        <span class="color-box" style="background-color: {{ box.color }}"></span>
-                    </label>
-                </div>
-            {% endfor %}
+            <div>
+                <h4 class="list-group-header">Select boxes</h4>
+                {% for box in boxes %}
+                    <div class="form-check list-group-item">
+                        <label class="form-check-label">
+                            <input type="checkbox" class="form-check-input cb-boxes">
+                            {{ box.folder_name }}
+                            <span class="color-box" style="background-color: {{ box.color }}"></span>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div>
+                <h4 class="list-group-header">Threshold</h4>
+                <input id="slider"
+                       type="text"
+                       data-slider-min="0"
+                       data-slider-max="1"
+                       data-slider-step="0.01"
+                       data-slider-value="0.2">
+                <span id="slider-value" class="ml-3" style="color: #ccc; vertical-align: middle">0.2</span>
+            </div>
+
         </div>
 
         <div class="col">
@@ -72,11 +90,15 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.0.2/bootstrap-slider.min.js"
+        crossorigin="anonymous"></script>
 
 <script src="/static/boxes.js"></script>
+<script src="/static/slider.js"></script>
 <script>
     let boxes = JSON.parse('{{ boxes|tojson|safe }}');
     initCanvas('{{ url_for("get_current_image") }}', boxes);
 </script>
+
 </body>
 </html>

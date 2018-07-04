@@ -1,6 +1,7 @@
 function initCanvas(current_image_url, boxes) {
     const canvas = $('#canvas')[0];
     const ctx = canvas.getContext('2d');
+    const slider = $("#slider");
 
     function drawBoxes(boxes, storkeColor) {
         ctx.strokeStyle = storkeColor;
@@ -42,15 +43,24 @@ function initCanvas(current_image_url, boxes) {
                 checkBoxes.each((idx, el) => $(el).prop('checked', states[idx]));
             }
         }
+
+        let threshold = sessionStorage.getItem('threshold');
+        if (threshold) {
+            threshold = Number.parseFloat(threshold);
+            slider.slider('setValue', threshold);
+            $("#slider-value").text(threshold);
+        }
     }
 
     function update_image() {
         ctx.drawImage(image, 0, 0);
 
         let states = getCheckboxStates();
+        let threshold = Number.parseFloat(slider.val());
         for (let i = 0; i < states.length; i++) {
             if (states[i]) {
-                drawBoxes(boxes[i].boxes, boxes[i].color);
+                const selected_boxes = boxes[i].boxes.filter(box => box[5] >= threshold);
+                drawBoxes(selected_boxes, boxes[i].color);
             }
         }
     }
@@ -75,4 +85,19 @@ function initCanvas(current_image_url, boxes) {
         const states = getCheckboxStates();
         sessionStorage.setItem('states', JSON.stringify(states));
     });
+
+    $(document).ready($ => {
+        slider.slider();
+
+        const update = (newValue) => {
+            $("#slider-value").text(newValue);
+            update_image();
+            sessionStorage.setItem('threshold', JSON.stringify(newValue));
+        };
+
+        slider.on('change', (e) => update(e.value.newValue));
+        slider.on("slide", (e) => update(e.value));
+    });
+
+
 }
