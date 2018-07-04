@@ -48,7 +48,7 @@
 
             <div>
                 <h4 class="list-group-header">Labels</h4>
-                {% for rb_text in ['Confidence','Labels','Label + Confidence', 'None'] %}
+                {% for rb_text in ['Confidence','Label','Label + Confidence', 'None'] %}
                     <div class="form-check list-group-item">
                         <label class="form-check-label">
                             <input type="radio" name="labels" class="form-check-input rb-label"
@@ -109,7 +109,8 @@
 <script src="/static/boxes.js"></script>
 <script>
     let boxes = JSON.parse('{{ boxes|tojson|safe }}');
-    initCanvas('{{ url_for("get_current_image") }}', boxes);
+    let mapping = JSON.parse('{{ (labels_mapping or None)|tojson|safe }}');
+    initCanvas('{{ url_for("get_current_image") }}', boxes, mapping);
 </script>
 
 </body>

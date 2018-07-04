@@ -22,10 +22,11 @@ def index():
     params = {
         'images_count': len(app.config['BOXES_INFO']),
         'current_image_index': app.config['HEAD'],
-        'current_image_number': app.config['HEAD']+1,
+        'current_image_number': app.config['HEAD'] + 1,
         'images_dir_name': path.basename(app.config['IMAGES_DIR']),
         'image_name': current_info().img_name,
-        'boxes': boxes
+        'boxes': boxes,
+        'labels_mapping': app.config['CLASSES']
     }
 
     return render_template('index.html', **params)
@@ -75,11 +76,12 @@ def add_header(r):
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser('Simple viewer for ResNet detections results')
+    parser = argparse.ArgumentParser(description='Simple viewer for ResNet detections results')
     parser.add_argument('images_dir', help='Path to the images folder.')
     parser.add_argument('boxes', nargs='+', help='Paths to folders with bouncing boxing information. '
                                                  'File names must match the names of the images '
                                                  'and extension must be .txt.')
+    parser.add_argument('--classes', help='Path to file with label class to label name mapping.')
     return parser.parse_args(args)
 
 
@@ -88,6 +90,10 @@ def check_args(args):
         if not path.exists(p) or not path.isdir(p):
             print(f'{p} - folder does not exist')
             exit(-1)
+
+    if args.classes and not path.exists(args.classes):
+        print('Classes file does not exist')
+        exit(-1)
 
 
 def read_input_info(args):
@@ -121,6 +127,11 @@ def current_info():
     return app.config['BOXES_INFO'][app.config['HEAD']]
 
 
+def read_classes(classes_path):
+    import pandas as pd
+    df_classes = pd.read_csv(classes_path, header=None)
+    return df_classes[0].to_dict()
+
 if __name__ == '__main__':
     args = parse_args(sys.argv[1:])
     check_args(args)
@@ -128,5 +139,7 @@ if __name__ == '__main__':
     app.config['IMAGES_DIR'] = args.images_dir
     app.config['BOXES_INFO'] = read_input_info(args)
     app.config['HEAD'] = 0
+
+    app.config['CLASSES'] = read_classes(args.classes) if args.classes else None
 
     app.run(debug=True)

@@ -1,4 +1,4 @@
-function initCanvas(current_image_url, boxes) {
+function initCanvas(current_image_url, boxes, mapping = null) {
     const canvas = $('#canvas')[0];
     const ctx = canvas.getContext('2d');
     const slider = $("#slider");
@@ -23,11 +23,14 @@ function initCanvas(current_image_url, boxes) {
             if (mode === 0) { // conf
                 text = box[5].toFixed(2).toString();
             }
-            else if (mode === 1) { // label
-                text = box[4].toString();
-            }
-            else if (mode === 2) { // label + conf
-                text = `${box[4]} (${box[5].toFixed(2)})`;
+            else {
+                const label_name = mapping ? mapping[box[4]] : box[4];
+                if (mode === 1) { // label
+                    text = label_name;
+                }
+                else if (mode === 2) { // label + conf
+                    text = `${label_name} (${box[5].toFixed(2)})`;
+                }
             }
 
             const width = ctx.measureText(text).width;
