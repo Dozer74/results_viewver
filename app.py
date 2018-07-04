@@ -2,7 +2,7 @@ import sys
 from builtins import print
 from os import path
 import os
-from flask import Flask, render_template, send_from_directory, redirect, url_for
+from flask import Flask, render_template, send_from_directory, redirect, url_for, request
 import argparse
 import pandas as pd
 from collections import namedtuple
@@ -63,6 +63,15 @@ def prev():
 @app.route('/last')
 def last():
     app.config['HEAD'] = len(app.config['BOXES_INFO']) - 1
+    return redirect(url_for('index'))
+
+
+@app.route('/move_to/')
+def move_to():
+    index = request.args.get('index', -1)
+    index = int(index)
+    if 0 <= index < len(app.config['BOXES_INFO']):
+        app.config['HEAD'] = index-1
     return redirect(url_for('index'))
 
 

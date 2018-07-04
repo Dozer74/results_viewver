@@ -76,36 +76,46 @@
         </div>
 
         <div class="col">
-            <div class="row">
-                <div class="col control-panel">
+            <div class="form-inline control-panel">
 
-                    {% set first = current_image_index==0 %}
-                    {% set last =  current_image_index==images_count-1 %}
+                {% set first = current_image_index==0 %}
+                {% set last =  current_image_index==images_count-1 %}
 
-                    <a href="{{ url_for('first') }}"
-                       class="btn btn-primary {{ first and 'disabled' or '' }}">
-                        <i class="fa fa-angle-double-left"></i>
-                    </a>
+                <a href="{{ url_for('first') }}"
+                   class="btn btn-primary {{ first and 'disabled' or '' }}">
+                    <i class="fa fa-angle-double-left"></i>
+                </a>
 
-                    <a href="{{ url_for('prev') }}"
-                       class="btn btn-primary {{ first and 'disabled' or '' }}">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
-                    <a href="{{ url_for('next') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
+                <a href="{{ url_for('prev') }}"
+                   class="btn btn-primary {{ first and 'disabled' or '' }}">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                <a href="{{ url_for('next') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
+                    <i class="fa fa-angle-right"></i>
+                </a>
 
-                    <a href="{{ url_for('last') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
-                        <i class="fa fa-angle-double-right"></i>
-                    </a>
+                <a href="{{ url_for('last') }}" class="btn btn-primary {{ last and 'disabled' or '' }}">
+                    <i class="fa fa-angle-double-right"></i>
+                </a>
 
-                    <span>{{ image_name }} ({{ current_image_number }}/{{ images_count }})</span>
+                <span>{{ image_name }} ({{ current_image_number }}/{{ images_count }})</span>
 
+                <label class="sr-only" for="inlineFormInputGroupUsername2">Username</label>
+                <div class="input-group ml-5">
+                    <input id="move-to-index" type="text" pattern="\d+" class="form-control" placeholder="Move to index"
+                           style="max-width: 125px">
+                    <div class="input-group-append">
+                        <button id="btn-move" class="btn btn-outline-secondary" type="button">
+                            <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>
+
             </div>
             <canvas id="canvas"></canvas>
         </div>
     </div>
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
@@ -126,6 +136,12 @@
     let mapping = JSON.parse('{{ (labels_mapping or None)|tojson|safe }}');
     let ground_truth = JSON.parse('{{ (ground_truth or None)|tojson|safe }}');
     initCanvas('{{ url_for("get_current_image") }}', boxes, mapping, ground_truth);
+
+    $('#btn-move').click(e => {
+        let index = $('#move-to-index').val();
+        window.location.replace('/move_to?index=' + index);
+    });
+
 </script>
 
 </body>
