@@ -3,7 +3,7 @@ function initCanvas(current_image_url, boxes) {
     const ctx = canvas.getContext('2d');
     const slider = $("#slider");
 
-    function drawBoxes(boxes, storkeColor) {
+    function drawBoxes(boxes, storkeColor, mode) {
         ctx.strokeStyle = storkeColor;
         ctx.fillStyle = storkeColor;
         ctx.lineWidth = 4;
@@ -13,9 +13,23 @@ function initCanvas(current_image_url, boxes) {
             ctx.rect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
             ctx.stroke();
 
+            if (mode === 3) { // no label
+                return;
+            }
+
             ctx.save();
             ctx.font = "15px Arial";
-            const text = box[5].toFixed(2).toString();
+            let text = '';
+            if (mode === 0) { // conf
+                text = box[5].toFixed(2).toString();
+            }
+            else if (mode === 1) { // label
+                text = box[4].toString();
+            }
+            else if (mode === 2) { // label + conf
+                text = `${box[4]} (${box[5].toFixed(2)})`;
+            }
+
             const width = ctx.measureText(text).width;
 
             ctx.textBaseline = 'top';
@@ -50,6 +64,12 @@ function initCanvas(current_image_url, boxes) {
             slider.slider('setValue', threshold);
             $("#slider-value").text(threshold);
         }
+
+        let labelsMode = sessionStorage.getItem('labelsMode');
+        if (labelsMode) {
+            labelsMode = Number.parseInt(labelsMode);
+            $(`.rb-label:eq(${labelsMode})`).prop('checked', true);
+        }
     }
 
     function update_image() {
@@ -57,10 +77,11 @@ function initCanvas(current_image_url, boxes) {
 
         let states = getCheckboxStates();
         let threshold = Number.parseFloat(slider.val());
+        let mode = $('.rb-label:checked').data('number');
         for (let i = 0; i < states.length; i++) {
             if (states[i]) {
                 const selected_boxes = boxes[i].boxes.filter(box => box[5] >= threshold);
-                drawBoxes(selected_boxes, boxes[i].color);
+                drawBoxes(selected_boxes, boxes[i].color, mode);
             }
         }
     }
@@ -72,8 +93,6 @@ function initCanvas(current_image_url, boxes) {
     image.onload = () => {
         canvas.width = image.width;
         canvas.height = image.height;
-
-        loadStates();
         update_image();
     };
     image.src = current_image_url;
@@ -86,8 +105,14 @@ function initCanvas(current_image_url, boxes) {
         sessionStorage.setItem('states', JSON.stringify(states));
     });
 
+    $('.rb-label').click((e) => {
+        update_image();
+        sessionStorage.setItem('labelsMode', JSON.stringify($(e.target).data('number')));
+    });
+
     $(document).ready($ => {
         slider.slider();
+        loadStates();
 
         const update = (newValue) => {
             $("#slider-value").text(newValue);
@@ -97,6 +122,7 @@ function initCanvas(current_image_url, boxes) {
 
         slider.on('change', (e) => update(e.value.newValue));
         slider.on("slide", (e) => update(e.value));
+
     });
 
 

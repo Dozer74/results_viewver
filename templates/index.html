@@ -26,10 +26,10 @@
                 <h4 class="list-group-header">Select boxes</h4>
                 {% for box in boxes %}
                     <div class="form-check list-group-item">
-                        <label class="form-check-label">
+                        <label class="form-check-label w-100">
                             <input type="checkbox" class="form-check-input cb-boxes">
-                            {{ box.folder_name }}
-                            <span class="color-box" style="background-color: {{ box.color }}"></span>
+                            <span class="float-left">{{ box.folder_name }}</span>
+                            <span class="color-box float-right" style="background-color: {{ box.color }}"></span>
                         </label>
                     </div>
                 {% endfor %}
@@ -44,6 +44,19 @@
                        data-slider-step="0.01"
                        data-slider-value="0.2">
                 <span id="slider-value" class="ml-3" style="color: #ccc; vertical-align: middle">0.2</span>
+            </div>
+
+            <div>
+                <h4 class="list-group-header">Labels</h4>
+                {% for rb_text in ['Confidence','Labels','Label + Confidence', 'None'] %}
+                    <div class="form-check list-group-item">
+                        <label class="form-check-label">
+                            <input type="radio" name="labels" class="form-check-input rb-label"
+                                   data-number="{{ loop.index0 }}">
+                            {{ rb_text }}
+                        </label>
+                    </div>
+                {% endfor %}
             </div>
 
         </div>
@@ -94,7 +107,6 @@
         crossorigin="anonymous"></script>
 
 <script src="/static/boxes.js"></script>
-<script src="/static/slider.js"></script>
 <script>
     let boxes = JSON.parse('{{ boxes|tojson|safe }}');
     initCanvas('{{ url_for("get_current_image") }}', boxes);

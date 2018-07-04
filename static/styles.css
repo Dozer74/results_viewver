@@ -13,12 +13,12 @@
 }
 
 .color-box {
-    display: inline-block;
+    display: inline;
     line-height: 1;
-    vertical-align: middle;
     border-radius: 0.5rem;
     width: 12px;
     height: 12px;
+    margin-top: 5px;
 }
 
 #sidebar {
